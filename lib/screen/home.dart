@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:api/model/models.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -11,7 +12,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<dynamic> users = [];
+  List<User> users = [];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -24,16 +25,16 @@ class _HomeScreenState extends State<HomeScreen> {
             itemCount: users.length,
             itemBuilder: (context, index) {
               final user = users[index];
-              final name = user['name']['first'];
-              final email = user['email'];
-              final image = user['picture']['thumbnail'];
+
+              // final email = user.email;
+              // final color = user.gender == 'male'
+              //   ? Colors.redAccent
+              //   : Color.fromARGB(255, 214, 172, 19);
+
               return ListTile(
-                leading: ClipRRect(
-                  borderRadius: BorderRadius.circular(100),
-                  child: Image.network(image),
-                ),
-                title: Text(name.toString()),
-                subtitle: Text(email),
+                title: Text(user.name.title),
+                subtitle: Text(user.phone),
+                //tileColor: color,
               );
             }),
         floatingActionButton: FloatingActionButton(onPressed: fetchUsers));
@@ -46,9 +47,23 @@ class _HomeScreenState extends State<HomeScreen> {
     final response = await http.get(uri);
     final body = response.body;
     final json = jsonDecode(body);
+    final results = json['results'] as List<dynamic>;
+    final transformed = results.map((e) {
+      final name = Username(
+          title: e['name']['title'],
+          last: e['name']['last'],
+          first: e['name']['first']);
+      return User(
+          phone: e['phone'],
+          cell: e['cell'],
+          nat: e['nat'],
+          gender: e['gender'],
+          email: e['email'],
+          name: name);
+    }).toList();
 
     setState(() {
-      users = json['results'];
+      users = transformed;
     });
 
     print(
